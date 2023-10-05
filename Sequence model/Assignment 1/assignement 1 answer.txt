@@ -1,0 +1,79 @@
+Assuming that x(t) is normally distributed with mean 0 and variance 1, we can use the following steps to generate the time series:
+
+Generate 200 iid normal random variables with mean 0 and variance 1. These will be the values of x(t) for t=1 to 200.
+
+Define p(1) = 1/2 and p(2) = 1/3.
+
+Define y(1) = x(1) and y(2) = x(2) + p(1)*x(1).
+
+For t = 3 to 200, compute y(t) = x(t) + p(1)*x(t-1) + p(2)*x(t-2).
+
+The time series {y(t)} for t=1 to 200 is the realization of the MA(1) model with the specified parameters.
+
+Note that the MA(1) model assumes that x(t) is a white noise process with mean 0 and variance 1. If x(t) is not normally distributed, or if it has a different mean or variance, we would need to adjust the above procedure accordingly.
+
+To recap, we need to generate 200 iid normal random variables with mean 0 and variance 1 to get the values of x(t) for t=1 to 200. Then we can compute y(t) for t=1 to 200 using the MA(1) model:
+
+y(t) = x(t) + p(1)*x(t-1) + p(2)*x(t-2)
+
+where p(1) = 1/2 and p(2) = 1/3.
+
+Here's some Python code that implements this procedure:
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the parameters of the MA(2) model
+p1 = 1/2
+p2 = 1/3
+
+# Generate 200 iid normal random variables with mean 0 and variance 1
+x = np.random.normal(loc=0, scale=1, size=200)
+
+# Compute y(t) for t=1 to 200
+y = np.zeros(200)
+y[0] = x[0]
+y[1] = x[1] + p1*x[0]
+for t in range(2, 200):
+    y[t] = x[t] + p1*x[t-1] + p2*x[t-2]
+
+# Calculate the sample ACF of y
+acf = np.zeros(21)
+for k in range(21):
+    if k == 0:
+        acf[k] = np.var(y)
+    else:
+        acf[k] = np.sum((y[k:] - np.mean(y[k:])) * (y[:-k] - np.mean(y[:-k]))) / (200 - k)
+
+# Calculate the theoretical ACF of y
+theoretical_acf = np.zeros(21)
+for k in range(21):
+    if k == 0:
+        theoretical_acf[k] = 1 + p1**2 + p2**2
+    elif k == 1:
+        theoretical_acf[k] = p1 + p1*p2
+    elif k == 2:
+        theoretical_acf[k] = p2
+    else:
+        theoretical_acf[k] = 0
+
+# Plot the sample and theoretical ACFs
+plt.stem(range(21), acf, label='Sample ACF')
+plt.stem(range(21), theoretical_acf, label='Theoretical ACF', linefmt='C1--', markerfmt='C1o')
+plt.xlabel('k')
+plt.ylabel('ACF')
+plt.title('MA(2) Autocorrelation Function')
+plt.legend()
+plt.show()
+
+This code first defines the parameters p1=1/2 and p2=1/3 for the MA(2) model. It then generates 200 iid normal random variables and computes the corresponding values of y using the MA(2) model. The sample ACF of y is then calculated using the formula:
+
+ACF(k) = (1/(N-k)) * sum((y(t)-mu)*(y(t+k)-mu))
+
+where N is the length of the time series, mu is the mean of the time series, and k is the lag.
+
+The code then calculates the theoretical ACF of y using the formula:
+
+ACF(k) = {p1^2 + p2^2 if k=0, p1 + p1*p2 if k=1, p2 if k=2, 0 otherwise}
+
+The resulting sample and theoretical ACFs are plotted against the corresponding lags using the matplotlib library. The resulting plot should show that the sample ACF of y matches the theoretical ACF quite well, with the theoretical ACF having a significant peak at lag 2 and some smaller peaks at lags 1 and 3.
